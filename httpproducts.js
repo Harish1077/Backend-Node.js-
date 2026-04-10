@@ -2,6 +2,7 @@ import http from 'http'
 import fs from 'fs'
 
 let server = http.createServer((req, res)=>{
+    let
     if(req.url == "/"){
         res.writeHead(200, {'content-type': 'text/html'})
         res.end(`

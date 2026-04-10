@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket Test</title>
+</head>
+<body>
+    <h1>Check console</h1>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket = io("http://localhost:3000");
+
+        // When connected
+        socket.on("connect", () => {
+            console.log("Connected to Server:", socket.id);
+            socket.emit("sendmsg", "hello mf");
+        });
+        socket.on("servermsg", (msg) => {
+            console.log("Message from server:", msg);
+        });
+        socket.on("connect_error", (err) => {
+            console.error("Connection error:", err.message);
+        });
+    </script>
+</body>
+</html>
