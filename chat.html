@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>God Chat</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    height: 100vh;
+    background: linear-gradient(135deg, #e0f2fe, #f1f5f9);
+}
+
+/* APP */
+.app {
+    display: flex;
+    height: 95vh;
+    margin: 2.5vh;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 230px;
+    padding: 20px;
+    background: rgba(255,255,255,0.6);
+}
+
+.room {
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.room:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* CHAT */
+.chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    padding: 15px;
+    font-weight: 600;
+    border-bottom: 1px solid #ddd;
+}
+
+/* MESSAGES */
+#messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.msg {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 15px;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    margin-right: 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    color:white;
+}
+
+/* BUBBLES */
+.bubble {
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 60%;
+    background: #ffffff;
+    color: #111;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.me .bubble {
+    background: #3b82f6;
+    color: white;
+}
+
+/* INPUT */
+.input {
+    display: flex;
+    padding: 10px;
+    background: rgba(255,255,255,0.6);
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: white;
+    color: black;
+}
+
+button {
+    margin-left: 10px;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #3b82f6;
+    color: white;
+    cursor: pointer;
+}
+
+/* USERS */
+.users {
+    width: 200px;
+    background: rgba(255,255,255,0.6);
+    padding: 15px;
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* typing */
+#typing {
+    font-size: 12px;
+    color: #555;
+    padding-left: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="sidebar">
+    <h3>Rooms</h3>
+    <div class="room" onclick="join('general')">general</div>
+    <div class="room" onclick="join('ai')">ai</div>
+    <div class="room" onclick="join('fun')">fun</div>
+</div>
+
+<div class="chat">
+    <div class="header">God Chat</div>
+    <div id="messages"></div>
+    <div id="typing"></div>
+
+    <div class="input">
+        <input id="m" placeholder="Send something legendary..." />
+        <button onclick="send()">➤</button>
+    </div>
+</div>
+
+<div class="users">
+    <h3>Online</h3>
+    <div id="userList"></div>
+</div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+const socket = io();
+
+let username = prompt("Enter name") || "Guest";
+let room = "general";
+
+function color(name){
+    let colors=["#f43f5e","#38bdf8","#22c55e","#eab308","#a855f7"];
+    return colors[name.length % colors.length];
+}
+
+function join(r){
+    room = r;
+    document.getElementById("messages").innerHTML="";
+    socket.emit("join",{username,room});
+}
+join(room);
+
+function send(){
+    let input=document.getElementById("m");
+    let msg=input.value.trim();
+    if(!msg) return;
+    socket.emit("chat",msg);
+    input.value="";
+}
+
+document.getElementById("m").addEventListener("keypress",e=>{
+    if(e.key==="Enter") send();
+});
+
+document.getElementById("m").addEventListener("input",()=>{
+    socket.emit("typing");
+});
+
+socket.on("chat",(msg)=>{
+    let div=document.createElement("div");
+    div.className="msg";
+
+    if(msg.user===username) div.classList.add("me");
+
+    div.innerHTML=`
+        <div class="avatar" style="background:${color(msg.user)}">
+            ${msg.user[0]}
+        </div>
+        <div class="bubble">
+            <strong>${msg.user}</strong><br>${msg.text}
+        </div>
+    `;
+
+    let m=document.getElementById("messages");
+    m.appendChild(div);
+    m.scrollTop=m.scrollHeight;
+});
+
+socket.on("typing",(u)=>{
+    let t=document.getElementById("typing");
+    t.innerText=u+" is typing...";
+    setTimeout(()=>t.innerText="",1000);
+});
+
+socket.on("users",(users)=>{
+    let list=document.getElementById("userList");
+    list.innerHTML="";
+    users.forEach(u=>{
+        let div=document.createElement("div");
+        div.className="user";
+        div.innerHTML=`
+            <div class="avatar" style="background:${color(u)}">${u[0]}</div>
+            ${u}
+        `;
+        list.appendChild(div);
+    });
+});
+</script>
+
+</body>
+</html>

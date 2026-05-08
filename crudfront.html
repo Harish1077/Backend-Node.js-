@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple CRUD operartions</title>
+</head>
+<body>
+    <h2>ADD Product</h2>
+    <form action = "/save" method="POST">
+        Name: <input type="text" name="name" required><br>
+        Price: <input type="number" name="price" required><br>
+        <input type="submit" value="ADD Product">
+    </form>
+
+    <hr>
+    <h2>Products List</h2>
+    <form action="/show" method="GET">
+        <input type="submit" value="Show Products">
+    </form>
+
+    <hr>
+    <h2>Update Product</h2>
+    <from action="/update" method="POST">
+        ID: <input type="text" id="id" name="id" required><br>
+        Name: <input type="text" id="name" name="name" required><br>
+        Price: <input type="number" id="price" name="price" required><br>
+        <input type="submit" value="Update Product">
+    </from>
+
+    <hr>
+    <h2>Delete Product</h2>
+    <form action="/delete" method="POST">
+        ID: <input type="text" id="id" name="id" required><br>
+        <input type="submit" value="Delete Product">
+    </form>
+
+</body>
+</html>
